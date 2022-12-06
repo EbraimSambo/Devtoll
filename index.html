@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevToll</title>
+    <link rel="stylesheet" href="css/global.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css">
+</head>
+<body>
+    
+    <header>
+        <h1>DevToll</h1>
+        <div class="search-container">
+            <i class="bi bi-search" ></i>
+            <input type="search" name="" id="" placeholder="Pesquisar tarefa">
+           
+        </div>
+         <button id="export-notes">
+                Esportar CSV <i class="bi bi-download"></i>
+        </button>
+    </header>
+
+    <div id="add-note-container">
+                <input type="text" name="" class="note-input" placeholder="O que deseja anotar">
+                <button class="add" id="export-notes">
+                  <i class="bi bi-plus-lg"></i>
+                </button>
+    </div>
+
+    <div id="notes-container">
+      
+    </div>
+    <script src="" ></script>
+
+    <script defer>
+
+        //Elemente
+    const noteContainer = document.querySelector('#notes-container');
+    const noteInput = document.querySelector('.note-input');
+    const addBtn = document.querySelector('.add');
+
+
+    function ShowNotes(){
+        cleanNotes()
+
+        GetNotes().forEach((note)=>{
+            const noteElement = createNote(note.id, note.content, note.fixed);
+
+            noteContainer.appendChild(noteElement);
+        })
+    }
+
+
+    function cleanNotes() {
+        noteContainer.replaceChildren([])
+    }
+    function AddNote(){
+
+        const notes = GetNotes();
+        const noteObject ={
+            id: GenerateId(),
+            content: noteInput.value,
+            fixed: false
+        }
+
+        const noteElement = createNote(noteObject.id, noteObject.content, noteObject.fixed);
+
+        noteContainer.appendChild(noteElement);
+
+        notes.push(noteObject);
+
+        SaveNotes(notes)
+
+        noteInput.value = "";
+    }
+
+    function GenerateId() {
+        return Math.floor(Math.random() * 5000);
+    }
+    function createNote(id, content, fixed){
+       const element = document.createElement("div")    
+       element.classList.add("note")
+
+       const TextArea = document.createElement("textarea")    
+       
+       TextArea.value = content;
+       TextArea.placeholder = "Adicionar uma nota"
+
+       element.appendChild(TextArea)
+
+       const pinIcon = document.createElement("i")  
+       pinIcon.classList.add(...['bi', 'bi-pin'])  
+
+
+       element.appendChild(pinIcon)
+
+
+       const deletIcon = document.createElement("i")  
+       deletIcon.classList.add(...['bi', 'bi-x-lg'])  
+       element.appendChild(deletIcon)
+
+       const duplecationIcon = document.createElement("i")  
+       duplecationIcon.classList.add(...['bi', 'bi-file-earmark-plus'])  
+       element.appendChild(duplecationIcon)
+
+       if(fixed){
+
+        element.classList.add("fixed")
+
+       }
+
+       //enventos dos elementos
+        element.querySelector(".bi-pin").addEventListener('click', ()=>{
+            ToogleFixed(id)
+        })
+
+        element.querySelector(".bi-x-lg").addEventListener('click', ()=>{
+            deleNotes(id, element)
+        })
+
+        element.querySelector(".bi-file-earmark-plus").addEventListener('click', ()=>{
+            CopyNote(id)
+        })
+       return element;
+    }
+
+    function CopyNote(id){
+        const notes = GetNotes()
+        const targetNote = notes.filter((note)=> note.id === id)[0];
+        const noteObject ={
+            id: GenerateId(),
+            content: targetNote.content,
+            fixed: false
+        }
+
+        const noteElement = createNote(
+            noteObject.id,
+             noteObject.content, 
+             noteObject.fixed
+        )
+
+        noteContainer.appendChild(noteElement);
+        notes.push(noteObject);
+     SaveNotes(notes)
+    }
+
+    function deleNotes(id, element){
+        const notes = GetNotes().filter((note)=> note.id !== id)
+
+        SaveNotes(notes)
+
+        noteContainer.removeChild(element)
+    }
+    function ToogleFixed(id){
+      const notes = GetNotes();
+
+      const targetNote = notes.filter((note)=> note.id === id)[0];
+      targetNote.fixed = !targetNote.fixed;
+ 
+      SaveNotes(notes)
+    }
+
+    function  GetNotes(){
+        const notes = JSON.parse(localStorage.getItem('notes') || "[]");
+
+        const orderNotes = notes.sort((a,b)=> (a.fixed > b.fixed ? -1 : 1))
+        return orderNotes;
+    }
+
+    function  SaveNotes(notes){
+        localStorage.setItem('notes', JSON.stringify(notes))
+
+        ShowNotes()
+    }
+    addBtn.addEventListener("click", ()=> AddNote())
+    
+    ShowNotes();
+    </script>
+</body>
+</html>
